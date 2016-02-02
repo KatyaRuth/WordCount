@@ -10,10 +10,16 @@ class WordCount(args):
 		self.arg = arg
 
 
-def count_words(args):
-	conf_dict = {}
+def write_counts_to_file(words_rdd, filename):
+	target = open(filename, 'w')
+	target.write(words_rdd)
+	target.close()
 
-	execfile(args[2], {}, conf_dict)
+
+def count_words(args):
+    conf_dict = {}
+
+    execfile(args[2], {}, conf_dict)
 
     config = pyspark.SparkConf().setAppName("Katya's Word Count Function")
     sc = pyspark.sparkContext(conf=config)
@@ -29,6 +35,8 @@ def count_words(args):
     kv = no_punctuation.map(lambda x: (x,1))
 
     sort = kv.reduceByKey(lambda a,b: a + b).map(lambda (x,y): (y, x)).sortByKey(False)
+    
+    write_counts_to_file(sort, conf_dict['output_location'])
 
 
 if __name__ == 'main':
